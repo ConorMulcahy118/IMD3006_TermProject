@@ -1,0 +1,257 @@
+<!-- IMD3006 Assignment 3 - Physics -->
+<!-- Conor Mulcahy - 101042906 - 8/3/2020 -->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <h1>Arrow keys to move, space to jump!</h1>
+        <canvas id="canvas" ></canvas>
+        <style>
+            canvas {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <img id="stand" width="153" height="312" src="assets/standstill.png">
+        <img id="runR" width="153" height="312" src="assets/run.png">
+        <img id="runL" width="153" height="312" src="assets/run2.png">
+        <img id="jump" width="153" height="312" src="assets/flight.png">
+
+        <script>
+            // frame setup
+            (function() {
+                var requestAnimationFrame = window.requestAnimationFrame;
+                window.requestAnimationFrame = requestAnimationFrame;
+            })();
+
+            // canvas setup
+            var canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d"),
+            width="800",
+            height="400";
+
+            // terrain
+            var groundObjects = []
+
+            groundObjects.push({ // ground
+                x: 0,
+                y: height - 5,
+                width: width,
+                height: 10,
+                slope: false
+            });
+            groundObjects.push({ // left wall
+                x: -5,
+                y: 0,
+                width: 10,
+                height: height,
+                slope: false
+            });
+            groundObjects.push({ // right wall
+                x: width - 5,
+                y: 0,
+                width: 10,
+                height: height,
+                slope: false
+            });
+            groundObjects.push({ // ceiling
+                x: 0,
+                y: -5,
+                width: width,
+                height: 10,
+                slope: false
+            });
+            groundObjects.push({
+                x: 240,
+                y: 320,
+                width: 160,
+                height: 80,
+                slope: false
+            })
+            groundObjects.push({
+                x: 320,
+                y: 240,
+                width: 160,
+                height: 160,
+                slope: false
+            })
+            groundObjects.push({ // slope
+                Ax: 480,
+                Ay: 240,
+                Bx: 480,
+                By: height,
+                Cx: 640,
+                Cy: height,
+                slope: true
+            })
+
+            // player class
+            GameObject = {
+                x: 80,
+                y: 80,
+                width: 40,
+                height: 80,
+                speed: 5,
+                Xvelocity: 0,
+                Yvelocity: 0,
+                airborne: false,
+                onground: false,
+                onslope: false,
+                image: document.getElementById("stand")
+            };
+
+            // controls
+            keys = [];
+            friction = 0.8;
+            gravity = 0.3;
+
+            document.body.addEventListener("keydown", function(e) {
+                keys[e.keyCode] = true;
+            });
+        
+            document.body.addEventListener("keyup", function(e) {
+                keys[e.keyCode] = false;
+                GameObject.image = document.getElementById("stand");
+            });
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // physics class
+            function physics(Player, Array) {
+                // movement
+                if (keys[32]) { // jump
+                    if (Player.airborne == false) {
+                        Player.onground = false;
+                        Player.airborne = true;
+                        Player.Yvelocity = -Player.speed * 2.0;
+                        Player.image = document.getElementById("jump");
+                    }
+                }
+                if (keys[39]) { // left
+                    if (Player.Xvelocity < Player.speed) {
+                        Player.Xvelocity++;
+                        Player.image = document.getElementById("runL");
+                    }
+                }
+                if (keys[37]) { // right
+                    if (Player.Xvelocity > -Player.speed) {
+                        Player.Xvelocity--;
+                        Player.image = document.getElementById("runR");
+                    }
+                }
+
+                Player.Xvelocity *= friction;
+                Player.Yvelocity += gravity;
+                Player.onground = false;
+
+                // collision checks
+                for (var i = 0; i < groundObjects.length; i++) {
+                    context.rect(groundObjects[i].x, groundObjects[i].y, groundObjects[i].width, groundObjects[i].height);
+
+                    var side = collides(Player, groundObjects[i]);
+
+                    if (side === "left" || side === "right") {
+                        Player.Xvelocity = 0;
+                        Player.airborne = false;
+                    }
+                    else if (side === "top") {
+                        Player.Yvelocity *= -1;
+                    }
+                    else if (side === "bottom") {
+                        Player.onground = true;
+                        Player.airborne = false;
+                    }    
+                }
+
+                if(Player.onground){
+                    Player.Yvelocity = 0;
+                }
+ 
+                Player.x += Player.Xvelocity;
+                Player.y += Player.Yvelocity; 
+            }
+
+            // collision
+            function collides(obj1, obj2) {
+                // get variables from both objects
+                var vectorX = (obj1.x + (obj1.width / 2)) - (obj2.x + (obj2.width / 2));
+                var vectorY = (obj1.y + (obj1.height / 2)) - (obj2.y + (obj2.height / 2));
+                var widthsum = (obj1.width / 2) + (obj2.width / 2);
+                var heightsum = (obj1.height / 2) + (obj2.height / 2);
+                var side = null;
+
+                // check for overlaps
+                if (Math.abs(vectorX) < widthsum && Math.abs(vectorY) < heightsum) {
+                    var overlapX = widthsum - Math.abs(vectorX);
+                    var overlapY = heightsum - Math.abs(vectorY);
+
+                    if (overlapX >= overlapY) {
+                        if (vectorY > 0) {
+                            side = "top";
+                            obj1.y += overlapY;
+                        } 
+                        else {
+                            side = "bottom";
+                            obj1.y -= overlapY;
+                        }
+                    }
+                    else {
+                        if (vectorX > 0) {
+                            side = "left";
+                            obj1.x += overlapX;
+                        }
+                        else {
+                            side = "right";
+                            obj1.x -= overlapX;
+                        }
+                    }
+                }
+
+                // check slope
+                if (obj2.slope) {
+                    if (obj1.x >= obj2.Ax - (obj1.width / 2) && obj1.x <= obj2.Cx + (obj1.width / 2)) {
+                        console.log("on slope");
+
+                        obj1.y = obj1.x - 320;
+                        side = 'bottom';
+                    }
+                }
+
+                return side;
+            }
+
+            // main game object
+            function update() {
+                context.clearRect(0,0,width,height);
+
+                context.fillStyle = "black";
+                context.beginPath();
+
+                physics(GameObject, groundObjects);
+
+                context.fill();
+
+                context.beginPath();
+                context.moveTo(groundObjects[6].Ax,groundObjects[6].Ay);
+                context.lineTo(groundObjects[6].Bx,groundObjects[6].By);
+                context.lineTo(groundObjects[6].Cx,groundObjects[6].Cy);
+
+                context.fill();
+
+                context.fillStyle = GameObject.image;
+                context.fillRect(GameObject.x, GameObject.y, GameObject.width, GameObject.height);
+                context.drawImage(GameObject.image, GameObject.x, GameObject.y - 2, GameObject.width, GameObject.height + 2);
+
+                requestAnimationFrame(update);
+            }
+
+            // run game
+            window.addEventListener("load", function(){
+                update();
+            });
+
+        </script>
+    </body>
+</html>

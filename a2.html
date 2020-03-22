@@ -1,0 +1,223 @@
+<!-- IMD3006 - Assignment 2 - Conor Mulcahy - 101042906 - 13/2/2020 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            canvas {
+                position: fixed;
+                top: 30%;
+                left: 25%;
+                margin: -225px -50px -50px -450px;
+                border:1px solid #000000;
+                background-color: #ffffff;
+            }
+        </style>
+    </head>
+
+    <body onload="startGame()">
+        <script>
+
+        var canvas = document.createElement("canvas");
+        var context = canvas.getContext("2d");
+
+        var playerChar;
+        var crates = [];
+        var conveyor;
+        var score;
+
+        // constructor
+        function startGame() {
+            gameZone.start();
+            playerChar = new objectC(60, 115, 100, 200, "standstill.png");
+            conveyor = new objectC(780, 370, 0, 0, "belt.png");
+            score = new scoreText("black", 30, 30);
+        }
+
+        // canvas
+        var gameZone = {
+            start : function() {
+                canvas.width = 780;
+                canvas.height = 370;
+                document.body.insertBefore(canvas, document.body.childNodes[0]);
+                this.scoreCounter = 0;
+                this.frame = 0;
+                this.interval = setInterval(updateZone, 20);
+
+                // listen for button events
+                window.addEventListener('keydown', function (e) {
+                    gameZone.key = e.keyCode;
+                })
+                window.addEventListener('keyup', function (e) {
+                    gameZone.key = false;
+                })
+
+            },
+            clear : function() {
+                context.clearRect(0, 0, canvas.width, canvas.height)
+            }
+        }
+
+        function crateInterval(int) {
+        	if ((gameZone.frame / int) % 1 == 0) {
+        		return true;
+        	}
+        }
+
+        // object class
+        function objectC(width, height, x, y, color) {
+            this.image = new Image();
+            this.image.src = color;
+            this.width = width;
+            this.height = height;
+            this.x = x;
+            this.y = y;   
+            this.speedX = 0;
+            this.speedY = 0;
+            this.grav = 0.05;
+            this.gravSpeed = 0;
+
+			var i = Math.round(Math.random());
+            if (i == 1) {
+            	this.goingUp = false;
+            } else {
+            	this.goingUp = true;
+            }
+
+            context.fillStyle = color;
+            context.fillRect(this.x, this.y, this.width, this.height);
+
+            this.update = function() {
+                context.drawImage(this.image, this.x, this.y, this.width, this.height);
+            }
+
+            // handles movement
+            this.newPos = function() {
+                this.gravSpeed += this.grav;
+                this.x += this.speedX;
+                this.y += this.speedY + this.gravSpeed;
+                this.stopFall();
+            }
+
+            // stop falling while on floor
+            this.stopFall = function() {
+            	var stopzone = canvas.height - 170;
+            	if (this.y > stopzone) {
+            		this.y = stopzone;
+            		this.gravSpeed = 0;
+            	}
+            }
+        }
+
+        // text class
+        function scoreText(color, x, y) {
+        	this.x = x;
+        	this.y = y;
+
+        	this.updateT = function() {
+        		context.font = "30px Arial";
+        		context.fillStyle = color;
+        		context.fillText(this.text, this.x, this.y);
+        	}
+        }
+
+        // update frame
+        function updateZone() {
+        	var xVal, yVal, goingUp;
+
+            gameZone.clear();
+            gameZone.scoreCounter += 5;
+            gameZone.frame += 1;
+
+            // button controls
+            if (gameZone.key) {
+                if (gameZone.key == 37) { 
+                    playerChar.speedX = -5;
+                    playerChar.image.src = "run.png";
+                } else if (gameZone.key == 39) { 
+                    playerChar.speedX = 5;
+                    playerChar.image.src = "run2.png";
+                } else if (gameZone.key == 38) {
+                	playerChar.grav = -0.5;
+                	playerChar.image.src = "flight.png";
+                }
+            } else {
+                playerChar.image.src = "standstill.png";
+            }
+
+            // update objects
+            conveyor.update();
+            playerChar.newPos(); 
+            playerChar.update();   
+
+            // prevent sliding after movement
+            playerChar.speedX = 0;
+            playerChar.grav = 0.5;     	
+
+        	// spawn new crate every set interval
+            if (gameZone.frame == 1 || crateInterval(100)) {
+            	xVal = canvas.width;
+            	yVal = 140;
+
+            	crates.push(new objectC(80, 80, xVal, yVal, "crate.png"));
+            }
+
+            // points
+            score.text = "Points: " + gameZone.scoreCounter;
+            score.updateT();
+
+            // move crates
+            for (n = 0; n < crates.length; n += 1) {
+            	// check collision
+				var collCheck = collides(playerChar, crates[n]);
+        		if (collCheck) {
+        			crates[n].image.src = "smashed.png";
+        			gameZone.scoreCounter -= 100;
+        		} else {
+        			crates[n].image.src = "crate.png";
+        		}
+
+            	crates[n].x += -2;
+
+            	if (crates[n].y >= 200) {
+            		crates[n].goingUp = true;
+            	} else if (crates[n].y <= 50) {
+            		crates[n].goingUp = false;
+            	}
+
+				if (crates[n].goingUp == false) {
+            		crates[n].y += 4;
+            	} else {
+            		crates[n].y -= 4;
+            	}
+          
+            	crates[n].update();
+            }
+        }
+
+        // collision checker
+        function collides(obj1, obj2) {
+        	var L1 = obj1.x;
+        	var R1 = obj1.x + obj1.width;
+        	var T1 = obj1.y;
+        	var B1 = obj1.y + obj1.height;
+
+
+        	var L2 = obj2.x;
+        	var R2 = obj2.x + obj2.width;
+        	var T2 = obj2.y;
+        	var B2 = obj2.y + obj2.height;
+
+
+        	if (R1 < L2 || L1 > R2 || T1 > B2 || B1 < T2) {
+        		return false;
+        	}
+        	else {
+        		return true;
+        	}
+        }
+        </script>
+
+        <p>--->Use left and right arrow keys to move, up arrow to fly. Touching the crates will take away points. Good luck!</p>
+        
+    </body>
+</html>
