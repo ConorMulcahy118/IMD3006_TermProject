@@ -23,6 +23,56 @@
             width="800",
             height="800";
 
+            //Drawing the road that enemies will follow
+            function drawRoad() {
+                context.beginPath();
+                context.rect(canvas.width/2 - 40, 0, 80, canvas.height);
+                context.fillStyle = "#000";
+                context.fill();
+                context.closePath();
+            }
+
+            var score = 0;
+
+            //Function to display Player Score UI
+            function drawScore() {
+                context.font = "20px Arial";
+                context.fillStyle = "#00F";
+                context.fillText("Score: " + score, 8, 25);
+            }
+
+            var enemyXPos = 400-20;
+            var enemyYPos = 0;
+
+            var enemyCounter = 0;
+
+            var interval = setInterval(increaseEnemy, 5000);
+            function increaseEnemy() {
+                enemyCounter++;
+            }
+            console.log(enemyCounter);
+
+            function enemyInstance()
+            {
+                for (i = 0; i < enemyCounter; i++)
+                {
+                    enemyYPos++;
+
+                    if (enemyYPos == canvas.height)
+                    {
+                        alert("You Lose!");
+                        document.location.reload();
+                    }
+
+                    context.beginPath();
+                    context.rect(enemyXPos, enemyYPos, 40, 40);
+                    context.fillStyle = "#00F";
+                    context.fill();
+                    context.closePath();
+                }
+            }
+
+
             // bounding box
             var groundObjects = []
 
@@ -166,6 +216,9 @@
             // main game object
             function update() {
                 context.clearRect(0,0,width,height);
+                drawRoad();
+                drawScore();
+                enemyInstance();
 
                 context.fillStyle = "black";
                 context.beginPath();
