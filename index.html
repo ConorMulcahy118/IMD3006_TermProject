@@ -116,6 +116,9 @@
                 Yvelocity: 0,
             };
 
+            // towers
+            var towers = [];
+
             // controls
             keys = [];
 
@@ -147,13 +150,16 @@
                 }
                 if (keys[38]) { // down
                     if (Player.Yvelocity < Player.speed) {
-                        Player.Yvelocity--;
+                        Player.Yvelocity -= 0.5;
                     }
                 }
                 if (keys[40]) { // up
                     if (Player.Yvelocity > -Player.speed) {
-                        Player.Yvelocity++;
+                        Player.Yvelocity += 0.5;
                     }
+                }
+                if (keys[32]) { // space
+                    maketower(Player);
                 }
 
                 // collision checks
@@ -172,6 +178,19 @@
  
                 Player.x += Player.Xvelocity;
                 Player.y += Player.Yvelocity; 
+            }
+
+            // tower dropping
+            function maketower(Player){
+                var tx = Player.x;
+                var ty = Player.y;
+
+                towers.push({
+                    x: tx,
+                    y: ty,
+                    width: 40,
+                    height: 40
+                });
             }
 
             // collision
@@ -213,7 +232,7 @@
                 return side;
             }
 
-            // main game object
+            // draw function
             function update() {
                 context.clearRect(0,0,width,height);
                 drawRoad();
@@ -229,6 +248,11 @@
 
                 context.fillStyle = "red";
                 context.fillRect(GameObject.x, GameObject.y, GameObject.width, GameObject.height);
+
+                for (var i = 0; i < towers.length; i++) {
+                    context.fillStyle = "green";
+                    context.fillRect(towers[i].x + 5, towers[i].y + 5, towers[i].width, towers[i].height);
+                }
 
                 requestAnimationFrame(update);
             }
