@@ -1,0 +1,212 @@
+<<<<<<< Updated upstream
+=======
+<!DOCTYPE html>
+<html>
+    <head>
+        <h1>Arrow keys to move</h1>
+        <canvas id="canvas" ></canvas>
+        <style>
+            canvas {
+                border: 1px solid black;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            // frame setup
+            (function() {
+                var requestAnimationFrame = window.requestAnimationFrame;
+                window.requestAnimationFrame = requestAnimationFrame;
+            })();
+
+            // canvas setup
+            var canvas = document.getElementById("canvas"),
+            context = canvas.getContext("2d"),
+            width="800",
+            height="800";
+
+            // bounding box
+            var groundObjects = []
+
+            groundObjects.push({ // ground
+                x: 0,
+                y: height - 5,
+                width: width,
+                height: 10
+            });
+            groundObjects.push({ // left wall
+                x: -5,
+                y: 0,
+                width: 10,
+                height: height
+            });
+            groundObjects.push({ // right wall
+                x: width - 5,
+                y: 0,
+                width: 10,
+                height: height
+            });
+            groundObjects.push({ // ceiling
+                x: 0,
+                y: -5,
+                width: width,
+                height: 10
+            });
+
+            // player class & towers
+            GameObject = {
+                x: 375,
+                y: 375,
+                width: 50,
+                height: 50,
+                speed: 4,
+                Xvelocity: 0,
+                Yvelocity: 0
+            };
+
+            var towers = [];
+
+            // controls
+            keys = [];
+
+            document.body.addEventListener("keydown", function(e) {
+                keys[e.keyCode] = true;
+            });
+        
+            document.body.addEventListener("keyup", function(e) {
+                keys[e.keyCode] = false;
+                GameObject.Xvelocity = 0;
+                GameObject.Yvelocity = 0;
+            });
+
+            canvas.width = width;
+            canvas.height = height;
+
+            // physics class
+            function physics(Player, Array) {
+                // movement
+                if (keys[39]) { // left
+                    if (Player.Xvelocity < Player.speed) {
+                        Player.Xvelocity++;
+                    }
+                }
+                if (keys[37]) { // right
+                    if (Player.Xvelocity > -Player.speed) {
+                        Player.Xvelocity--;
+                    }
+                }
+                if (keys[38]) { // down
+                    if (Player.Yvelocity < Player.speed) {
+                        Player.Yvelocity--;
+                    }
+                }
+                if (keys[40]) { // up
+                    if (Player.Yvelocity > -Player.speed) {
+                        Player.Yvelocity++;
+                    }
+                }
+                if (keys[32]) { // space
+                    maketower(GameObject);
+                }
+
+                // collision checks
+                for (var i = 0; i < groundObjects.length; i++) {
+                    context.rect(groundObjects[i].x, groundObjects[i].y, groundObjects[i].width, groundObjects[i].height);
+
+                    var side = collides(Player, groundObjects[i]);
+
+                    if (side === "left" || side === "right") {
+                        Player.Xvelocity = 0;
+                    }
+                    else if (side === "top" || side == "bottom") {
+                        Player.Yvelocity = 0;
+                    }
+                }
+ 
+                Player.x += Player.Xvelocity;
+                Player.y += Player.Yvelocity; 
+            }
+
+            // drop tower
+            function maketower(Player) {
+                var tx = Player.x + 5;
+                var ty = Player.y + 5;
+
+                towers.push({
+                    x: tx,
+                    y: ty,
+                    height: 40,
+                    width: 40
+                });
+            }
+
+            // collision
+            function collides(obj1, obj2) {
+                // get variables from both objects
+                var vectorX = (obj1.x + (obj1.width / 2)) - (obj2.x + (obj2.width / 2));
+                var vectorY = (obj1.y + (obj1.height / 2)) - (obj2.y + (obj2.height / 2));
+                var widthsum = (obj1.width / 2) + (obj2.width / 2);
+                var heightsum = (obj1.height / 2) + (obj2.height / 2);
+                var side = null;
+
+                // check for overlaps
+                if (Math.abs(vectorX) < widthsum && Math.abs(vectorY) < heightsum) {
+                    var overlapX = widthsum - Math.abs(vectorX);
+                    var overlapY = heightsum - Math.abs(vectorY);
+
+                    if (overlapX >= overlapY) {
+                        if (vectorY > 0) {
+                            side = "top";
+                            obj1.y += overlapY;
+                        } 
+                        else {
+                            side = "bottom";
+                            obj1.y -= overlapY;
+                        }
+                    }
+                    else {
+                        if (vectorX > 0) {
+                            side = "left";
+                            obj1.x += overlapX;
+                        }
+                        else {
+                            side = "right";
+                            obj1.x -= overlapX;
+                        }
+                    }
+                }
+
+                return side;
+            }
+
+            // main game object
+            function update() {
+                context.clearRect(0,0,width,height);
+
+                context.fillStyle = "black";
+                context.beginPath();
+
+                physics(GameObject, groundObjects);
+
+                context.fill();
+
+                context.fillStyle = "red";
+                context.fillRect(GameObject.x, GameObject.y, GameObject.width, GameObject.height);
+
+                for (var i = 0; i < towers.length; i++) {
+                    context.fillStyle = "blue";
+                    context.fillRect(towers[i].x, towers[i].y, towers[i].width, towers[i].height);
+                }
+
+                requestAnimationFrame(update);
+            }
+
+            // run game
+            window.addEventListener("load", function(){
+                update();
+            });
+
+        </script>
+    </body>
+</html>
+>>>>>>> Stashed changes
