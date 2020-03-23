@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <h1>Arrow keys to move</h1>
+        <h1>Arrow keys to move, space to drop walls</h1>
         <canvas id="canvas" ></canvas>
         <style>
             canvas {
@@ -23,55 +23,20 @@
             width="800",
             height="800";
 
-            //Drawing the road that enemies will follow
-            function drawRoad() {
-                context.beginPath();
-                context.rect(canvas.width/2 - 40, 0, 80, canvas.height);
-                context.fillStyle = "#000";
-                context.fill();
-                context.closePath();
-            }
-
-            var score = 0;
-
-            //Function to display Player Score UI
-            function drawScore() {
-                context.font = "20px Arial";
-                context.fillStyle = "#00F";
-                context.fillText("Score: " + score, 8, 25);
-            }
-
-            var enemyXPos = 400-20;
-            var enemyYPos = 0;
-
+            // enemies
             var enemyCounter = 0;
+            var enemies = [];
 
-            var interval = setInterval(increaseEnemy, 5000);
-            function increaseEnemy() {
-                enemyCounter++;
-            }
-            console.log(enemyCounter);
-
-            function enemyInstance()
+            function spawnenemy()
             {
-                for (i = 0; i < enemyCounter; i++)
-                {
-                    enemyYPos++;
-
-                    if (enemyYPos == canvas.height)
-                    {
-                        alert("You Lose!");
-                        document.location.reload();
-                    }
-
-                    context.beginPath();
-                    context.rect(enemyXPos, enemyYPos, 40, 40);
-                    context.fillStyle = "#00F";
-                    context.fill();
-                    context.closePath();
-                }
+                enemies.push({
+                    x: 375,
+                    y: 20,
+                    width: 40,
+                    height: 40,
+                    color: 'blue'
+                });
             }
-
 
             // bounding box
             var groundObjects = []
@@ -81,43 +46,45 @@
                 y: height - 5,
                 width: width,
                 height: 10,
-                slope: false
+                color: 'black'
             });
             groundObjects.push({ // left wall
                 x: -5,
                 y: 0,
                 width: 10,
                 height: height,
-                slope: false
+                color: 'black'
             });
             groundObjects.push({ // right wall
                 x: width - 5,
                 y: 0,
                 width: 10,
                 height: height,
-                slope: false
+                color: 'black'
             });
             groundObjects.push({ // ceiling
                 x: 0,
                 y: -5,
                 width: width,
                 height: 10,
-                slope: false
+                color: 'black'
             });
 
             // player class
             GameObject = {
-                x: 375,
-                y: 375,
-                width: 50,
-                height: 50,
+                x: 387.5,
+                y: 387.5,
+                width: 25,
+                height: 25,
                 speed: 5,
                 Xvelocity: 0,
                 Yvelocity: 0,
+                color: 'red'
             };
 
             // towers
             var towers = [];
+            var towercd = 0;
 
             // controls
             keys = [];
@@ -136,7 +103,7 @@
             canvas.height = height;
 
             // physics class
-            function physics(Player, Array) {
+            function physics(Player, Array, EnemyArray) {
                 // movement
                 if (keys[39]) { // left
                     if (Player.Xvelocity < Player.speed) {
@@ -159,7 +126,10 @@
                     }
                 }
                 if (keys[32]) { // space
-                    maketower(Player);
+                    if (towercd == 0) {
+                        maketower(Player);
+                        towercd = 10;
+                    }
                 }
 
                 // collision checks
@@ -174,6 +144,34 @@
                     else if (side === "top" || side == "bottom") {
                         Player.Yvelocity = 0;
                     }
+
+                    for (var j = 0; j < enemies.length; j++){
+                        var side2 = collides(groundObjects[i], enemies[j]);
+
+                        if (side2) {
+                            alert("You Lose!");
+                            document.location.reload();
+                        }
+                    }
+                }
+
+                for (var i = 0; i < enemies.length; i++) {
+                    for (var j = 0; j < towers.length; j++) {
+                        context.rect(towers[j].x, towers[j].y, towers[j].width, towers[j].height);
+
+                        var touch = collides(towers[j], enemies[i]);
+
+                        if (touch) {
+                            enemies[i].color = 'white';
+                            towers[j].color = 'white';
+
+                            enemies[i].x = 30;
+                            enemies[i].y = 30;
+                            towers[j].x = 30;
+                            towers[j].y = 70;
+                            console.log('touch');
+                        }
+                    }
                 }
  
                 Player.x += Player.Xvelocity;
@@ -182,14 +180,15 @@
 
             // tower dropping
             function maketower(Player){
-                var tx = Player.x;
-                var ty = Player.y;
+                var tx = Player.x - 12.5;
+                var ty = Player.y - 12.5;
 
                 towers.push({
                     x: tx,
                     y: ty,
                     width: 40,
-                    height: 40
+                    height: 40,
+                    color: 'green'
                 });
             }
 
@@ -232,27 +231,68 @@
                 return side;
             }
 
+            // drawing the road that enemies will follow
+            function drawRoad() {
+                context.beginPath();
+                context.rect(canvas.width/2 - 40, 0, 80, canvas.height);
+                context.fillStyle = "#000";
+                context.fill();
+                context.closePath();
+            }
+
+            var score = 0;
+
+            // function to display Player Score UI
+            function drawScore() {
+                context.font = "20px Arial";
+                context.fillStyle = "#00F";
+                context.fillText("Score: " + score, 8, 25);
+            }
+
             // draw function
             function update() {
                 context.clearRect(0,0,width,height);
+
+                // draw features
                 drawRoad();
                 drawScore();
-                enemyInstance();
 
-                context.fillStyle = "black";
-                context.beginPath();
+                for (var i = 0; i < groundObjects.length; i++) {
+                    context.fillStyle = groundObjects[0].color;
+                    context.fillRect(groundObjects[i].x, groundObjects[i].y, groundObjects[i].width, groundObjects[i].height);
+                }
 
-                physics(GameObject, groundObjects);
+                // spawn enemies at intervals
+                enemyCounter++;
+                var interval = enemyCounter % 200;
 
-                context.fill();
+                if (interval == 0){
+                    spawnenemy();
+                }
+                
+                // draw enemies
+                for (var i = 0; i < enemies.length; i++) {
+                    enemies[i].y++;
+                    context.fillStyle = enemies[i].color;
+                    context.fillRect(enemies[i].x + 5, enemies[i].y + 5, enemies[i].width, enemies[i].height);
+                }
 
-                context.fillStyle = "red";
-                context.fillRect(GameObject.x, GameObject.y, GameObject.width, GameObject.height);
+                // game physics
+                physics(GameObject, groundObjects, enemies);
 
+                // draw towers
                 for (var i = 0; i < towers.length; i++) {
-                    context.fillStyle = "green";
+                    context.fillStyle = towers[i].color;
                     context.fillRect(towers[i].x + 5, towers[i].y + 5, towers[i].width, towers[i].height);
                 }
+
+                if (towercd > 0) {
+                    towercd--;
+                }
+
+                // draw player
+                context.fillStyle = GameObject.color;
+                context.fillRect(GameObject.x, GameObject.y, GameObject.width, GameObject.height);
 
                 requestAnimationFrame(update);
             }
