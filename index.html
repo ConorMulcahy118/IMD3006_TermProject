@@ -23,6 +23,8 @@
             width="800",
             height="800";
 
+            var score = 0;
+
             // enemies
             var enemyCounter = 0;
             var enemies = [];
@@ -169,7 +171,8 @@
                             enemies[i].y = 30;
                             towers[j].x = 30;
                             towers[j].y = 70;
-                            console.log('touch');
+
+                            score += 10;
                         }
                     }
                 }
@@ -239,8 +242,6 @@
                 context.fill();
                 context.closePath();
             }
-
-            var score = 0;
 
             // function to display Player Score UI
             function drawScore() {
