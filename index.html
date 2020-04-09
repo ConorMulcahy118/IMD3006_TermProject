@@ -15,7 +15,9 @@
     <body>
         <div visible="false">
             <img id="grass" width="800px" height="800px" src="images/grass.png">
-            <img id="slime" width="40px" height="40px" src="images/slime.gif">
+            <img id="slimeG" width="40px" height="40px" src="images/slime_green.png">
+            <img id="slimeR" width="40px" height="40px" src="images/slime_red.png">
+            <img id="slimeB" width="40px" height="40px" src="images/slime_blue.png">
         </div>
 
         <script>
@@ -50,7 +52,7 @@
                         y: 20,
                         width: 40,
                         height: 40,
-                        image: document.getElementById("slime"),
+                        image: document.getElementById("slimeG"),
                         direction: 'down'
                     });
                 }
@@ -60,7 +62,7 @@
                         y: height - 20,
                         width: 40,
                         height: 40,
-                        image: document.getElementById("slime"),
+                        image: document.getElementById("slimeG"),
                         direction: 'up'
                     });
                 }
@@ -70,7 +72,7 @@
                         y: height / 2 - 20,
                         width: 40,
                         height: 40,
-                        image: document.getElementById("slime"),
+                        image: document.getElementById("slimeG"),
                         direction: 'left'
                     });
                 }
@@ -80,7 +82,7 @@
                         y: height / 2 - 20,
                         width: 40,
                         height: 40,
-                        image: document.getElementById("slime"),
+                        image: document.getElementById("slimeG"),
                         direction: 'right'
                     });
                 }               
