@@ -20,7 +20,7 @@
             <img id="slimeB" width="40px" height="40px" src="images/slime_blue.png">
             <img id="house" width="40px" height="40px" src="images/house.png">
             <img id="pathV" width="40px" height="40px" src="images/path_ver.png">
-            <img id="pathH" width="40px" height="40px" src="images/path_hor.png">
+            <img id="pathH" width="40px" height="40px" src="images/path_hor2.png">
             <img id="wallB" width="40px" height="40px" src="images/wall_brick.png">
             <img id="wallS" width="40px" height="40px" src="images/wall_stone.png">
             <img id="wallD" width="40px" height="40px" src="images/wall_dirt.png">
@@ -225,9 +225,9 @@
             });
             roads.push({
                 x: 0,
-                y: height / 2 - 30,
+                y: height / 2 - 150,
                 width: width,
-                height: 60,
+                height: 300,
                 image: document.getElementById("pathH")
             });
 
@@ -508,10 +508,26 @@
                         enemies[i].y--;
                     }
                     else if (enemies[i].direction == 'left'){
-                        enemies[i].x++;
+                        if (enemies[i].x < 100 || enemies[i].y == 260 && enemies[i].x >= 100 && enemies[i].x < 280 || enemies[i].x >= 280 && enemies[i].y == height/2 - 20){
+                            enemies[i].x++;
+                        } 
+                        else if (enemies[i].x == 100 && enemies[i].y > 260){
+                            enemies[i].y--;
+                        }
+                        else if (enemies[i].x == 280 && enemies[i].y < height/2 - 20){
+                            enemies[i].y++;
+                        }
                     }
                     else if (enemies[i].direction == 'right'){
-                        enemies[i].x--;
+                        if (enemies[i].x > 670 || enemies[i].y == 500 && enemies[i].x <= 670 && enemies[i].x > 490 || enemies[i].x <= 490 && enemies[i].y == height/2 - 20){
+                            enemies[i].x--;
+                        } 
+                        else if (enemies[i].x == 670 && enemies[i].y < 500){
+                            enemies[i].y++;
+                        }
+                        else if (enemies[i].x == 490 && enemies[i].y > height/2 - 20){
+                            enemies[i].y--;
+                        }
                     }
 
                     context.fillStyle = enemies[i].image;
