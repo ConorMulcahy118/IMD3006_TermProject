@@ -40,6 +40,7 @@
             height="800";
 
             var score = 0;
+            var frequency = 100
 
             // enemies
             var enemyCounter = 0;
@@ -362,6 +363,8 @@
                             towers[j].y = height + 110;
 
                             score += 10;
+                            if (score > 100 && frequency > 40)
+                                frequency--;
                         } else if (touch && towers[j].hits > 1) {
                             enemies[i].color = 'white';
                             towers[j].hits--;
@@ -370,6 +373,8 @@
                             enemies[i].y = 30;
 
                             score += 10;
+                            if (score > 100 && frequency > 40)
+                                frequency--;
                         }
                     }
                 }
@@ -468,6 +473,7 @@
                     context.fillText("Press '2' for Stone Wall", 8, 75)
                 if (score > 400)
                     context.fillText("Press '3' for Brick Wall", 8, 100)
+                context.fillText("Frequency: " + frequency, 8, 120)
                 
                 context.fillStyle = roads[0].image;
                 context.drawImage(roads[0].image, roads[0].x, roads[0].y, roads[0].width, roads[0].height);
@@ -486,7 +492,7 @@
 
                 // spawn enemies at intervals
                 enemyCounter++;
-                var interval = enemyCounter % 100;
+                var interval = enemyCounter % frequency;
 
                 if (interval == 0){
                     spawnenemy();
